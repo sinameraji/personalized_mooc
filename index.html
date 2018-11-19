@@ -50,9 +50,7 @@
       firebase.auth().signInWithPopup(provider).then(function (result) {
         var token = result.credential.accessToken;
         let theUrl = "https://api.github.com/user?access_token=" + token
-        $.get( theUrl, function( data ) {
-          console.log(data)
-        });
+        
         var user = result.user;
         data["email"] = user.email
         data["email"]["name"] = name
