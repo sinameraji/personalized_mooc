@@ -24,7 +24,6 @@
 </head>
 
 <body>
-  <button id="login">Login</button>
   <div class="botui-app-container" id="hello-world">
     <bot-ui></bot-ui>
   </div>
@@ -115,7 +114,9 @@
         data["name"] = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
-        false)).then(() => {
+        false)).then(() =>{
+          sendMessage("I'm currently interested to chat with people who've taken an online Machine Learning course before.", 1000, false)
+        }).then(() => {
           sendMessage("Before we go further, mind logging in with your Github account?", 1000, false).then(() => {
             buttons([{text: 'Sure, login via Github', value: 'github'}, {text: 'uh I dont have a Github account', value:'no'}]).then(function (res) {
               if(res.value === 'github')
@@ -123,7 +124,7 @@
               else
                 sendMessage("Alright, no probs.", 1000, false)
             }).then(() => sendMessage(
-        "Tell me..what's an ML course that you've taken and really liked? see if it's in this list:", 1000,
+        "Tell me..what's an ML course that you've taken that you really liked? see if it's in this list:", 1000,
         false)).then(() => dropDown("Pick a course or select 'None'", "NG", true, 'text', 'courses', {
         icon: 'check',
         label: 'OK'
