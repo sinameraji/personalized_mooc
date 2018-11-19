@@ -45,14 +45,29 @@
   </script>
   <script>
   var provider = new firebase.auth.GithubAuthProvider();
+  let username;
+  var languages = []
     let theBot = document.getElementById("hello-world")
     function login() {
       firebase.auth().signInWithPopup(provider).then(function (result) {
         var token = result.credential.accessToken;
         let userUrl = "https://api.github.com/user?access_token="+token
+        
         $.get(userUrl, function(data) {
-          console.log(data)
+          username = data.login
+          let userRepos = []
+          let reposUrl = "https://api.github.com/users/"+ username +"/repos"
+          console.log("username: " + username)
+          $.get(reposUrl, function(repos) {
+            repos.forEach((repo)=>{
+              let languageUrl= "https://api.github.com/repos/"+username+"/"+repo.name+"/languages"
+              $.get(languageUrl, function(langs) {
+                languages = languages.concat(Object.keys(langs))
+              });
+            })
+          });
         });
+
         var user = result.user;
         data["email"] = user.email
         data["email"]["name"] = name
@@ -198,6 +213,7 @@
       })).then(() => {
         sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then((res) => {
           data["style"] = res.value
+          data["languages"] = languages
           sendMessage("interesting. cool cool", 2000, true)
         postContactToGoogle(data)})
       })
