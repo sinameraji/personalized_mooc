@@ -7,8 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="build/botui.min.css">
   <link rel="stylesheet" href="build/botui-theme-default.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>  
   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
 
+  <script>
+        function postContactToGoogle(data) {
+            var form_url = 'https://docs.google.com/forms/d/e/1FAIpQLSewnyqIDBQ2_t-YaFPzTpdCg-8jLneHmv6BitSggyK1q97OMA/formResponse?';
+            form_url+= 'entry.1725402981=' + JSON.stringify(data);
+            $.ajax({
+            url:form_url,type:"POST",dataType:"xml",statusCode: {0:function() { console.log("DONE" + JSON.stringify(data));},200:function(){console.log("DONE" + JSON.stringify(data));}}
+            });
+        }
+</script>
   <script>
     // Initialize Firebase
     var config = {
@@ -182,7 +192,7 @@
         sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then((res) => {
           data["style"] = res.value
           sendMessage("interesting. cool cool", 2000, true)
-        console.log(data)})
+        postContactToGoogle(data)})
       })
                 })
               }
