@@ -30,7 +30,11 @@
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <script src="build/botui.js"></script>
   <script>
-    var provider = new firebase.auth.GithubAuthProvider();
+    
+    
+  </script>
+  <script>
+  var provider = new firebase.auth.GithubAuthProvider();
     let theBot = document.getElementById("hello-world")
     function login() {
       firebase.auth().signInWithPopup(provider).then(function (result) {
@@ -43,9 +47,6 @@
         console.log(errorMessage)
       });
     }
-    
-  </script>
-  <script>
     var botui = new BotUI('hello-world');
     var data = {}
     let name = ""
@@ -103,16 +104,25 @@
       })
     }
 
-    let getInput = (text) => {
-      return botui.action.text({
-        action: {
-          placeholder: text
-        }
-      })
+    let getInput = (text,email) => {
+      if(!email){
+        return botui.action.text({
+          action: {
+            placeholder: text
+          }
+        })
+      } else {
+        return botui.action.text({
+          action: {
+            sub_type: 'email',
+            placeholder: text
+          }
+        })
+      }
     }
 
     sendMessage("hi. what's your name?", 2000, true).then(() => {
-      getInput("write your name here").then((res) => {
+      getInput("write your name here",false).then((res) => {
         name = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
@@ -126,9 +136,9 @@
               }
               else{
                 sendMessage("Alright, no probs. then maybe tell me your primary email?", 1000, false).then(() => {
-                  getInput("Your email").then((res) => {
+                  getInput("Your email",true).then((res) => {
                     data["email"] = res.value
-                    data["email"]["name"] = name
+                    data["name"] = name
                   }).then(() => sendMessage(
         "Tell me..what's an ML course that you've taken that you really liked? see if it's in this list:", 1000,
         false)).then(() => dropDown("Pick a course or select 'None'", "NG", true, 'text', 'courses', {
@@ -137,7 +147,7 @@
       }).then(function (res) {
         console.log(res.value)
         if (res.value !== "others") {
-          data["email"]["ml_courses_liked"] = res.value
+          data["ml_courses_liked"] = res.value
           
           sendMessage("Awesome!", 1000, true)
           console.log(data)
@@ -155,7 +165,7 @@
                   sendMessage(
                     "Tell me the URL of the course and I'll review and add it to the list :)", 1000,
                     true).then(() => {
-                    getInput("Course URL").then(() => {
+                    getInput("Course URL",false).then(() => {
                       data["email"]["adding_new_course"] = true
                       data
                     })
@@ -168,7 +178,9 @@
             })
         }
       })).then(() => {
-        sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then(() => {sendMessage("interesting. cool cool", 2000, true)
+        sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then((res) => {
+          data["style"] = res.value
+          sendMessage("interesting. cool cool", 2000, true)
         console.log(data)})
       })
                 })
