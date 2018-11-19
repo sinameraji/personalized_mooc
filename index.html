@@ -109,14 +109,13 @@
       })
     }
 
-    sendMessage("hi", 0, false).then(() => {
+    sendMessage("hi. what's your name?", 2000, true).then(() => {
       getInput("write your name here").then((res) => {
         data["name"] = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
         false)).then(() =>{
-          sendMessage("I'm currently interested to chat with people who've taken an online Machine Learning course before.", 1000, false)
-        }).then(() => {
+          sendMessage("I'm currently interested to chat with people who've taken an online Machine Learning course before.", 1000, false).then(() => {
           sendMessage("Before we go further, mind logging in with your Github account?", 1000, false).then(() => {
             buttons([{text: 'Sure, login via Github', value: 'github'}, {text: 'uh I dont have a Github account', value:'no'}]).then(function (res) {
               if(res.value === 'github')
@@ -145,19 +144,25 @@
               }]).then(function (res) {
                 if (res.value === 'y') {
                   sendMessage(
-                    "Tell me the details of the course and I'll review and add it to the list :)", 1000,
+                    "Tell me the URL of the course and I'll review and add it to the list :)", 1000,
                     true).then(() => {
                     getInput("Course URL").then(() => {
                       data["name"]["adding_new_course"] = true
                       data
                     })
                   })
-                }
+                } else 
+                  sendMessage("what are you good for", 3000, true).then(() => {
+                    sendMessage("you had one job..![am i a joke to you](src/img/joke.jpeg)", 1000, true)
+                  })
               })
             })
 
         }
+      }).then(() => {
+        sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then(() => sendMessage("interesting. cool cool", 2000, true))
       })
+        })
           })
         })
     })
