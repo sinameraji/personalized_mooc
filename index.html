@@ -8,54 +8,100 @@
   <link rel="stylesheet" href="build/botui.min.css">
   <link rel="stylesheet" href="build/botui-theme-default.css">
   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
-<script>
-  // Initialize Firebase
-  var config = {
-    apiKey: "AIzaSyCj5PWFNw9dM1hT_tMXWJ6g99K7B66RA-o",
-    authDomain: "final-year-proje-1539060754667.firebaseapp.com",
-    databaseURL: "https://final-year-proje-1539060754667.firebaseio.com",
-    projectId: "final-year-proje-1539060754667",
-    storageBucket: "final-year-proje-1539060754667.appspot.com",
-    messagingSenderId: "1065905789220"
-  };
-  firebase.initializeApp(config);
-</script>
+
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyCj5PWFNw9dM1hT_tMXWJ6g99K7B66RA-o",
+      authDomain: "final-year-proje-1539060754667.firebaseapp.com",
+      databaseURL: "https://final-year-proje-1539060754667.firebaseio.com",
+      projectId: "final-year-proje-1539060754667",
+      storageBucket: "final-year-proje-1539060754667.appspot.com",
+      messagingSenderId: "1065905789220"
+    };
+    firebase.initializeApp(config);
+  </script>
 </head>
 
 <body>
+  <button id="login">Login</button>
   <div class="botui-app-container" id="hello-world">
     <bot-ui></bot-ui>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <script src="build/botui.js"></script>
   <script>
+    var provider = new firebase.auth.GithubAuthProvider();
+
+    function login() {
+      firebase.auth().signInWithPopup(provider).then(function (result) {
+        var token = result.credential.accessToken;
+        var user = result.user;
+        console.log(user)
+      }).catch(function (error) {
+        var errorMessage = error.message;
+        console.log(errorMessage)
+      });
+    }
+    document.getElementById("login").onclick = login;
+  </script>
+  <script>
     var botui = new BotUI('hello-world');
     var data = {}
-    let sendMessage = (c, d, l) => {return botui.message.add({
-      delay: d,
-      content: c,
-      loading: l
-    })}
+    let sendMessage = (c, d, l) => {
+      return botui.message.add({
+        delay: d,
+        content: c,
+        loading: l
+      })
+    }
     let buttons = (array) => {
       botui.action.button({
         action: array
       })
     }
     let dropDown = (placeHolder, val, multipleselect, label, options, btn) => {
-      let courses = [{value: "coursera_ng", text: "Coursera ML Andrew Ng" },{value: "udacity", text: "Udacity Deep Learning" },{value: "tf", text: "Tensorflow official tutorial" }, {value: "goog", text: "Goolge ML Crash Course" }, {value: "fastai", text: "Fast.ai" },{value: "kaggle", text: "ML course on Kaggle" }, {value: "mastery", text: "Machine Learning Mastery blog" }, {value: "coursera_dc", text: "ML Specialization, University of Washington, Coursera" }, {value: "others", text: "None" }]
+      let courses = [{
+        value: "coursera_ng",
+        text: "Coursera ML Andrew Ng"
+      }, {
+        value: "udacity",
+        text: "Udacity Deep Learning"
+      }, {
+        value: "tf",
+        text: "Tensorflow official tutorial"
+      }, {
+        value: "goog",
+        text: "Goolge ML Crash Course"
+      }, {
+        value: "fastai",
+        text: "Fast.ai"
+      }, {
+        value: "kaggle",
+        text: "ML course on Kaggle"
+      }, {
+        value: "mastery",
+        text: "Machine Learning Mastery blog"
+      }, {
+        value: "coursera_dc",
+        text: "ML Specialization, University of Washington, Coursera"
+      }, {
+        value: "others",
+        text: "None"
+      }]
 
       return botui.action.select({
         action: {
-            placeholder : placeHolder, 
-            value: val, // Selected value or selected object. Example: {value: "TR", text : "Türkçe" }
-            multipleselect : multipleselect, // Default: true, false for standart dropdown
-            label : label, // dropdown label variable
-            options : courses,
-            button: btn
-          }
+          placeholder: placeHolder,
+          value: val, // Selected value or selected object. Example: {value: "TR", text : "Türkçe" }
+          multipleselect: multipleselect, // Default: true, false for standart dropdown
+          label: label, // dropdown label variable
+          options: courses,
+          button: btn
+        }
       })
     }
-    
+
     let getInput = (text) => {
       return botui.action.text({
         action: {
@@ -64,35 +110,47 @@
       })
     }
 
-    sendMessage("hi", 0, false).then(() => { 
-      getInput("write your name here").then((res) => { 
+    sendMessage("hi", 0, false).then(() => {
+      getInput("write your name here").then((res) => {
         data["name"] = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
-      }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000, false)
-    ).then(() => sendMessage("Tell me..what's an ML course that you've taken and really liked? see if it's in this list:",1000, false)).then(() => dropDown("Pick a course or select 'none''", "NG", true, 'text', 'courses',{icon: 'check', label: 'OK'})).then(function (res) { 
-      if(res.value !== "others")
-      {
-        data["name"]["ml_courses_liked"] = res.value
-        sendMessage ("Awesome!", 1000, true) 
-        console.log(data)
-      } else{
-        sendMessage("No problem! do you have a favorite course that you wanna add to the list?", 1000, false).then(()=>{
-          buttons([{text: 'Yes', value: 'y'}, {text: 'Nope', value: 'n'}]).then(function (res) { 
-            if(res.value === 'y'){
-              sendMessage("Tell me the details of the course and I'll review and add it to the list :)", 1000, true).then(()=>{
-                getInput("Course URL").then(() => {
-                  data["name"]["adding_new_course"] = true
-                  data
-                })
+      }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
+        false)).then(() => sendMessage(
+        "Tell me..what's an ML course that you've taken and really liked? see if it's in this list:", 1000,
+        false)).then(() => dropDown("Pick a course or select 'None'", "NG", true, 'text', 'courses', {
+        icon: 'check',
+        label: 'OK'
+      })).then(function (res) {
+        if (res.value !== "others") {
+          data["name"]["ml_courses_liked"] = res.value
+          sendMessage("Awesome!", 1000, true)
+          console.log(data)
+        } else {
+          sendMessage("No problem! do you have a favorite course that you wanna add to the list?", 1000, false)
+            .then(() => {
+              buttons([{
+                text: 'Yes',
+                value: 'y'
+              }, {
+                text: 'Nope',
+                value: 'n'
+              }]).then(function (res) {
+                if (res.value === 'y') {
+                  sendMessage(
+                    "Tell me the details of the course and I'll review and add it to the list :)", 1000,
+                    true).then(() => {
+                    getInput("Course URL").then(() => {
+                      data["name"]["adding_new_course"] = true
+                      data
+                    })
+                  })
+                }
               })
-            }
-          })
-        })
-        
-      }
+            })
+
+        }
+      })
     })
-    })
-    
   </script>
 
 </body>
