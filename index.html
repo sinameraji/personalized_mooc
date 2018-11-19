@@ -32,7 +32,7 @@
   <script src="build/botui.js"></script>
   <script>
     var provider = new firebase.auth.GithubAuthProvider();
-
+    let theBot = document.getElementById("hello-world")
     function login() {
       firebase.auth().signInWithPopup(provider).then(function (result) {
         var token = result.credential.accessToken;
@@ -43,7 +43,7 @@
         console.log(errorMessage)
       });
     }
-    document.getElementById("login").onclick = login;
+    
   </script>
   <script>
     var botui = new BotUI('hello-world');
@@ -56,7 +56,7 @@
       })
     }
     let buttons = (array) => {
-      botui.action.button({
+      return botui.action.button({
         action: array
       })
     }
@@ -115,7 +115,14 @@
         data["name"] = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
-        false)).then(() => sendMessage(
+        false)).then(() => {
+          sendMessage("Before we go further, mind logging in with your Github account?", 1000, false).then(() => {
+            buttons([{text: 'Sure, login via Github', value: 'github'}, {text: 'uh I dont have a Github account', value:'no'}]).then(function (res) {
+              if(res.value === 'github')
+                login()
+              else
+                sendMessage("Alright, no probs.", 1000, false)
+            }).then(() => sendMessage(
         "Tell me..what's an ML course that you've taken and really liked? see if it's in this list:", 1000,
         false)).then(() => dropDown("Pick a course or select 'None'", "NG", true, 'text', 'courses', {
         icon: 'check',
@@ -150,6 +157,8 @@
 
         }
       })
+          })
+        })
     })
   </script>
 
