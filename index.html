@@ -150,7 +150,10 @@
                   getInput("Your email",true).then((res) => {
                     data["email"] = res.value
                     data["name"] = name
-                  }).then(() => sendMessage(
+                  })
+                })
+              }
+            }).then(() => sendMessage(
         "Tell me..what's an ML course that you've taken that you really liked? see if it's in this list:", 1000,
         false)).then(() => dropDown("Pick a course or select 'None'", "NG", true, 'text', 'courses', {
         icon: 'check',
@@ -194,9 +197,6 @@
           sendMessage("interesting. cool cool", 2000, true)
         postContactToGoogle(data)})
       })
-                })
-              }
-            })
         })
           })
         })
