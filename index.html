@@ -183,7 +183,7 @@
           data["ml_courses_liked"] = res.value
           
           sendMessage("Awesome!", 1000, true)
-          console.log(data.filter( onlyUnique ))
+          console.log(data)
         } else {
           sendMessage("No problem! do you have a favorite course that you wanna add to the list?", 1000, false)
             .then(() => {
@@ -213,7 +213,7 @@
       })).then(() => {
         sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then((res) => {
           data["style"] = res.value
-          data["languages"] = languages
+          data["languages"] = languages.filter( onlyUnique )
           sendMessage("interesting. cool cool", 2000, true)
         postContactToGoogle(data)})
       })
