@@ -183,7 +183,7 @@
           data["ml_courses_liked"] = res.value
           
           sendMessage("Awesome!", 1000, true)
-          console.log(data)
+          console.log(data.filter( onlyUnique ))
         } else {
           sendMessage("No problem! do you have a favorite course that you wanna add to the list?", 1000, false)
             .then(() => {
@@ -221,6 +221,9 @@
           })
         })
     })
+    function onlyUnique(value, index, self) { 
+      return self.indexOf(value) === index;
+    }
   </script>
 
 </body>
