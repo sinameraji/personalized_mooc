@@ -7,18 +7,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="build/botui.min.css">
   <link rel="stylesheet" href="build/botui-theme-default.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
 
   <script>
-        function postContactToGoogle(data) {
-            var form_url = 'https://docs.google.com/forms/d/e/1FAIpQLSewnyqIDBQ2_t-YaFPzTpdCg-8jLneHmv6BitSggyK1q97OMA/formResponse?';
-            form_url+= 'entry.1725402981=' + JSON.stringify(data);
-            $.ajax({
-            url:form_url,type:"POST",dataType:"xml",statusCode: {0:function() { console.log("DONE" + JSON.stringify(data));},200:function(){console.log("DONE" + JSON.stringify(data));}}
-            });
+    function postContactToGoogle(data) {
+      var form_url =
+        'https://docs.google.com/forms/d/e/1FAIpQLSewnyqIDBQ2_t-YaFPzTpdCg-8jLneHmv6BitSggyK1q97OMA/formResponse?';
+      form_url += 'entry.1725402981=' + JSON.stringify(data);
+      $.ajax({
+        url: form_url,
+        type: "POST",
+        dataType: "xml",
+        statusCode: {
+          0: function () {
+            console.log("DONE" + JSON.stringify(data));
+          },
+          200: function () {
+            console.log("DONE" + JSON.stringify(data));
+          }
         }
-</script>
+      });
+    }
+  </script>
   <script>
     // Initialize Firebase
     var config = {
@@ -40,28 +51,30 @@
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <script src="build/botui.js"></script>
   <script>
-    
-    
+
+
   </script>
   <script>
-  var provider = new firebase.auth.GithubAuthProvider();
-  let username;
-  var languages = []
+    var provider = new firebase.auth.GithubAuthProvider();
+    let username;
+    var languages = []
     let theBot = document.getElementById("hello-world")
+
     function login() {
       firebase.auth().signInWithPopup(provider).then(function (result) {
         var token = result.credential.accessToken;
-        let userUrl = "https://api.github.com/user?access_token="+token
-        
-        $.get(userUrl, function(data) {
+        let userUrl = "https://api.github.com/user?access_token=" + token
+
+        $.get(userUrl, function (data) {
           username = data.login
           let userRepos = []
-          let reposUrl = "https://api.github.com/users/"+ username +"/repos"
+          let reposUrl = "https://api.github.com/users/" + username + "/repos"
           console.log("username: " + username)
-          $.get(reposUrl, function(repos) {
-            repos.forEach((repo)=>{
-              let languageUrl= "https://api.github.com/repos/"+username+"/"+repo.name+"/languages"
-              $.get(languageUrl, function(langs) {
+          $.get(reposUrl, function (repos) {
+            repos.forEach((repo) => {
+              let languageUrl = "https://api.github.com/repos/" + username + "/" + repo.name +
+                "/languages"
+              $.get(languageUrl, function (langs) {
                 languages = languages.concat(Object.keys(langs))
               });
             })
@@ -118,8 +131,8 @@
         value: "coursera_dc",
         text: "ML Specialization, University of Washington, Coursera"
       }, {
-        value: "others",
-        text: "None"
+        value: "none",
+        text: "None of these"
       }]
 
       return botui.action.select({
@@ -134,8 +147,8 @@
       })
     }
 
-    let getInput = (text,email) => {
-      if(!email){
+    let getInput = (text, email) => {
+      if (!email) {
         return botui.action.text({
           action: {
             placeholder: text
@@ -152,76 +165,110 @@
     }
 
     sendMessage("hi. what's your name?", 2000, true).then(() => {
-      getInput("write your name here",false).then((res) => {
+      getInput("write your name here", false).then((res) => {
         name = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
-        false)).then(() =>{
-          sendMessage("I'm currently interested to chat with people who've taken an online Machine Learning course before.", 1000, false).then(() => {
-          sendMessage("Before we go further, mind logging in with your Github account?", 1000, false).then(() => {
-            buttons([{text: 'Sure, login via Github', value: 'github'}, {text: 'uh I dont have a Github account', value:'no'}]).then(function (res) {
-              if(res.value === 'github'){
-                login()
-                
-              }
-              else{
-                sendMessage("Alright, no probs. then maybe tell me your primary email?", 1000, false).then(() => {
-                  getInput("Your email",true).then((res) => {
-                    data["email"] = res.value
-                    data["name"] = name
-                  })
-                })
-              }
-            }).then(() => sendMessage(
-        "Tell me..what's an ML course that you've taken that you really liked? see if it's in this list:", 1000,
-        false)).then(() => dropDown("Pick a course or select 'None'", "NG", true, 'text', 'courses', {
-        icon: 'check',
-        label: 'OK'
-      }).then(function (res) {
-        console.log(res.value)
-        if (res.value !== "others") {
-          data["ml_courses_liked"] = res.value
-          
-          sendMessage("Awesome!", 1000, true)
-          console.log(data)
-        } else {
-          sendMessage("No problem! do you have a favorite course that you wanna add to the list?", 1000, false)
-            .then(() => {
+        false)).then(() => {
+        sendMessage(
+          "I'm currently interested to chat with people who've taken an online Machine Learning course before.",
+          1000, false).then(() => {
+          sendMessage("Before we go further, mind logging in with your Github account?", 1000, false).then(
+            () => {
               buttons([{
-                text: 'Yes',
-                value: 'y'
+                text: 'Sure, login via Github',
+                value: 'github'
               }, {
-                text: 'Nope',
-                value: 'n'
+                text: 'uh I dont have a Github account',
+                value: 'no'
               }]).then(function (res) {
-                if (res.value === 'y') {
+                if (res.value === 'github') {
+                  login()
                   sendMessage(
-                    "Tell me the URL of the course and I'll review and add it to the list :)", 1000,
-                    true).then(() => {
-                    getInput("Course URL",false).then(() => {
-                      data["email"]["adding_new_course"] = true
-                      data
+                    "Tell me..what's an ML course that you've taken that you'd really really really recommend to someone like yourself? (someone with same level of knowledge and experience as you)",
+                    1000,
+                    false).then(() => dropDown("Pick one or select 'None of these'", "NG", false, 'text',
+                    'courses', {
+                      icon: 'check',
+                      label: 'OK'
+                    }).then(function (res) {
+                    console.log(res.value)
+                    if (res.value !== "none") {
+                      data["ml_courses_liked"] = res.value
+                      data["adding_new_course"] = false
+                      sendMessage("Awesome!", 1000, true)
+                      console.log(data)
+                    } else {
+                      sendMessage(
+                          "No problem! do you have a favorite course that you wanna add to the list?",
+                          1000, false)
+                        .then(() => {
+                          buttons([{
+                            text: 'Yes',
+                            value: 'y'
+                          }, {
+                            text: 'Nope',
+                            value: 'n'
+                          }]).then(function (res) {
+                            if (res.value === 'y') {
+                              sendMessage(
+                                "Tell me the URL of the course and I'll review and add it to the list :)",
+                                1000,
+                                true).then(() => {
+                                getInput("Course URL", false).then((res) => {
+                                  data["adding_new_course"] = true
+                                  data["ml_courses_liked"] = res.value
+                                }).then(() => {
+                                sendMessage(
+                                  "Do you prefer learning from text or videos?",
+                                  4000, true).then(
+                                  () => buttons([{
+                                    text: "Text",
+                                    value: "text"
+                                  }, {
+                                    text: "Videos",
+                                    value: "video"
+                                  }])).then((res) => {
+                                  data["style"] = res.value
+                                  data["languages"] = languages.filter(onlyUnique)
+                                  sendMessage("interesting. cool cool", 2000,
+                                    true)
+                                  postContactToGoogle(data)
+                                }).then(() => {
+                                  if (languages.length === 0) {
+                                    sendMessage("What programming languages do you know? (was expecting to find out from your Github but seems like you haven't been very active there:))")
+                                  }
+                                })
+                              })
+                              })
+                            } else
+                              sendMessage("what are you good for", 3000, true).then(() => {
+                                sendMessage(
+                                  "you had one job..![am i a joke to you](src/img/joke.jpeg)",
+                                  1000, true)
+                              })
+                          })
+                        })
+                    }
+                  }))
+                } else {
+                  sendMessage("Sorry! For now, you need a Github account to continue :'(", 1000,
+                    false).then(() => sendMessage(
+                    "You can give me your email to receive updates from me.", 2000, false)).then(() => {
+                    getInput("email", true).then((res) => {
+                      data["email"] = res.value
+                      data["receive_updates"] = true
+                      postContactToGoogle(data)
                     })
                   })
-                } else 
-                  sendMessage("what are you good for", 3000, true).then(() => {
-                    sendMessage("you had one job..![am i a joke to you](src/img/joke.jpeg)", 1000, true)
-                  })
+                }
               })
             })
-        }
-      })).then(() => {
-        sendMessage("Do you prefer learning from text or videos?",1000,false).then(() => buttons([{text: "Text", value: "text"}, {text: "Videos", value: "video"}])).then((res) => {
-          data["style"] = res.value
-          data["languages"] = languages.filter( onlyUnique )
-          sendMessage("interesting. cool cool", 2000, true)
-        postContactToGoogle(data)})
+        })
       })
-        })
-          })
-        })
     })
-    function onlyUnique(value, index, self) { 
+
+    function onlyUnique(value, index, self) {
       return self.indexOf(value) === index;
     }
   </script>
