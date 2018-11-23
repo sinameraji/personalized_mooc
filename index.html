@@ -60,35 +60,42 @@
     var languages = []
     let theBot = document.getElementById("hello-world")
 
-    function login() {
-      firebase.auth().signInWithPopup(provider).then(function (result) {
-        var token = result.credential.accessToken;
-        let userUrl = "https://api.github.com/user?access_token=" + token
+    function login(dev) {
+      if(dev){
+        username = 'dev_mode'
+        languages = ['dev_mode']
+        data["email"] = 'dev'
+        data["name"] = 'dev'
+      } else{
+        firebase.auth().signInWithPopup(provider).then(function (result) {
+          var token = result.credential.accessToken;
+          let userUrl = "https://api.github.com/user?access_token=" + token
 
-        $.get(userUrl, function (data) {
-          username = data.login
-          let userRepos = []
-          let reposUrl = "https://api.github.com/users/" + username + "/repos"
-          console.log("username: " + username)
-          $.get(reposUrl, function (repos) {
-            repos.forEach((repo) => {
-              let languageUrl = "https://api.github.com/repos/" + username + "/" + repo.name +
-                "/languages"
-              $.get(languageUrl, function (langs) {
-                languages = languages.concat(Object.keys(langs))
-              });
-            })
+          $.get(userUrl, function (data) {
+            username = data.login
+            let userRepos = []
+            let reposUrl = "https://api.github.com/users/" + username + "/repos"
+            console.log("username: " + username)
+            $.get(reposUrl, function (repos) {
+              repos.forEach((repo) => {
+                let languageUrl = "https://api.github.com/repos/" + username + "/" + repo.name +
+                  "/languages"
+                $.get(languageUrl, function (langs) {
+                  languages = languages.concat(Object.keys(langs))
+                });
+              })
+            });
           });
-        });
 
-        var user = result.user;
-        data["email"] = user.email
-        data["email"]["name"] = name
-        console.log(user)
-      }).catch(function (error) {
-        var errorMessage = error.message;
-        console.log(errorMessage)
-      });
+          var user = result.user;
+          data["email"] = user.email
+          data["name"] = name
+          console.log(user)
+        }).catch(function (error) {
+          var errorMessage = error.message;
+          console.log(errorMessage)
+        });
+      }
     }
     var botui = new BotUI('hello-world');
     var data = {}
@@ -183,7 +190,7 @@
                 value: 'no'
               }]).then(function (res) {
                 if (res.value === 'github') {
-                  login()
+                  login(true)
                   sendMessage(
                     "Tell me..what's an ML course that you've taken that you'd really really really recommend to someone like yourself? (someone with same level of knowledge and experience as you)",
                     1000,
@@ -196,8 +203,12 @@
                     if (res.value !== "none") {
                       data["ml_courses_liked"] = res.value
                       data["adding_new_course"] = false
-                      sendMessage("Awesome!", 1000, true)
-                      console.log(data)
+                      sendMessage("Awesome!", 1000, true).then(() => sendMessage("Why do you recommend it?", 1000, false)).then(()=>getInput("Tell me", false)).then((res)=>{
+                    data["reason_for_recommending"] = res.value
+                    console.log(data)
+                    
+                  })
+                      
                     } else {
                       sendMessage(
                           "No problem! do you have a favorite course that you wanna add to the list?",
