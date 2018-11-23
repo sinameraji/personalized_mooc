@@ -61,12 +61,12 @@
     let theBot = document.getElementById("hello-world")
 
     function login(dev) {
-      if(dev){
+      if (dev) {
         username = 'dev_mode'
         languages = ['dev_mode']
         data["email"] = 'dev'
         data["name"] = 'dev'
-      } else{
+      } else {
         firebase.auth().signInWithPopup(provider).then(function (result) {
           var token = result.credential.accessToken;
           let userUrl = "https://api.github.com/user?access_token=" + token
@@ -100,6 +100,7 @@
     var botui = new BotUI('hello-world');
     var data = {}
     let name = ""
+    let whyRecommend()
     let sendMessage = (c, d, l) => {
       return botui.message.add({
         delay: d,
@@ -194,7 +195,8 @@
                   sendMessage(
                     "Tell me..what's an ML course that you've taken that you'd really really really recommend to someone like yourself? (someone with same level of knowledge and experience as you)",
                     1000,
-                    false).then(() => dropDown("Pick one or select 'None of these'", "NG", false, 'text',
+                    false).then(() => dropDown("Pick one or select 'None of these'", "NG", false,
+                    'text',
                     'courses', {
                       icon: 'check',
                       label: 'OK'
@@ -203,12 +205,30 @@
                     if (res.value !== "none") {
                       data["ml_courses_liked"] = res.value
                       data["adding_new_course"] = false
-                      sendMessage("Awesome!", 1000, true).then(() => sendMessage("Why do you recommend it?", 1000, false)).then(()=>getInput("Tell me", false)).then((res)=>{
-                    data["reason_for_recommending"] = res.value
-                    console.log(data)
-                    
-                  })
-                      
+                      sendMessage("Awesome!", 1000, true).then(() => sendMessage(
+                        "In less than 10 words, why do you recommend it?", 1000, false)).then(
+                        () => getInput(
+                          "Tell me", false)).then((res) => {
+                        data["reason_for_recommending"] = res.value
+                        console.log(data)
+                      }).then(() => {
+                        sendMessage(
+                          "Do you prefer learning from text or videos?",
+                          4000, true).then(
+                          () => buttons([{
+                            text: "Text",
+                            value: "text"
+                          }, {
+                            text: "Videos",
+                            value: "video"
+                          }])).then((res) => {
+                          data["style"] = res.value
+                          data["languages"] = languages.filter(onlyUnique)
+                          sendMessage("interesting. cool cool", 2000,
+                            true)
+                          postContactToGoogle(data)
+                        })
+                      })
                     } else {
                       sendMessage(
                           "No problem! do you have a favorite course that you wanna add to the list?",
@@ -229,28 +249,7 @@
                                 getInput("Course URL", false).then((res) => {
                                   data["adding_new_course"] = true
                                   data["ml_courses_liked"] = res.value
-                                }).then(() => {
-                                sendMessage(
-                                  "Do you prefer learning from text or videos?",
-                                  4000, true).then(
-                                  () => buttons([{
-                                    text: "Text",
-                                    value: "text"
-                                  }, {
-                                    text: "Videos",
-                                    value: "video"
-                                  }])).then((res) => {
-                                  data["style"] = res.value
-                                  data["languages"] = languages.filter(onlyUnique)
-                                  sendMessage("interesting. cool cool", 2000,
-                                    true)
-                                  postContactToGoogle(data)
-                                }).then(() => {
-                                  if (languages.length === 0) {
-                                    sendMessage("What programming languages do you know? (was expecting to find out from your Github but seems like you haven't been very active there:))")
-                                  }
                                 })
-                              })
                               })
                             } else
                               sendMessage("what are you good for", 3000, true).then(() => {
@@ -265,7 +264,7 @@
                 } else {
                   sendMessage("Sorry! For now, you need a Github account to continue :'(", 1000,
                     false).then(() => sendMessage(
-                    "You can give me your email to receive updates from me.", 2000, false)).then(() => {
+                    "You can give me your email to receive updates from me.", 2000, true)).then(() => {
                     getInput("email", true).then((res) => {
                       data["email"] = res.value
                       data["receive_updates"] = true
