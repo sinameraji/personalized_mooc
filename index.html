@@ -29,6 +29,27 @@
         }
       });
     }
+
+    function postContactToGoogle(data, newCourse) {
+      var form_url =
+        "https://docs.google.com/forms/d/e/1FAIpQLSfVMwjOTW2g7HLOYZnpB0pFhENpcHBMUnzM-JoZ3i2hI1Wc6Q/formResponse?"
+      form_url += 'entry.160311008=' + JSON.stringify(data.url) + "&"
+      form_url += 'entry.800234758=' + JSON.stringify(data.type) + "&"
+      form_url += 'entry.1732245064=' + JSON.stringify(data.email) 
+      $.ajax({
+        url: form_url,
+        type: "POST",
+        dataType: "xml",
+        statusCode: {
+          0: function () {
+            console.log("new course written to sheets" + JSON.stringify(data));
+          },
+          200: function () {
+            console.log("new course written to sheets" + JSON.stringify(data));
+          }
+        }
+      });
+    }
   </script>
   <script>
     // Initialize Firebase
@@ -100,7 +121,15 @@
     var botui = new BotUI('hello-world');
     var data = {}
     let name = ""
-    let whyRecommend()
+    let whyRecommend = () => {
+      return sendMessage(
+        "In less than 10 words, why do you recommend it?", 1000, false).then(
+        () => getInput(
+          "Tell me", false)).then((res) => {
+        data["reason_for_recommending"] = res.value
+        console.log(data)
+      })
+    }
     let sendMessage = (c, d, l) => {
       return botui.message.add({
         delay: d,
@@ -113,7 +142,7 @@
         action: array
       })
     }
-    let dropDown = (placeHolder, val, multipleselect, label, options, btn) => {
+    let dropDown = (placeHolder, val, searchselect, label, options, btn) => {
       let courses = [{
         value: "coursera_ng",
         text: "Coursera ML Andrew Ng"
@@ -146,9 +175,9 @@
       return botui.action.select({
         action: {
           placeholder: placeHolder,
-          value: val, // Selected value or selected object. Example: {value: "TR", text : "Türkçe" }
-          multipleselect: multipleselect, // Default: true, false for standart dropdown
+          searchselect: searchselect, // Default: true, false for standart dropdown
           label: label, // dropdown label variable
+          label: 'text',
           options: courses,
           button: btn
         }
@@ -195,7 +224,7 @@
                   sendMessage(
                     "Tell me..what's an ML course that you've taken that you'd really really really recommend to someone like yourself? (someone with same level of knowledge and experience as you)",
                     1000,
-                    false).then(() => dropDown("Pick one or select 'None of these'", "NG", false,
+                    false).then(() => dropDown("Pick one or select 'None of these'", "NG", true,
                     'text',
                     'courses', {
                       icon: 'check',
@@ -205,13 +234,7 @@
                     if (res.value !== "none") {
                       data["ml_courses_liked"] = res.value
                       data["adding_new_course"] = false
-                      sendMessage("Awesome!", 1000, true).then(() => sendMessage(
-                        "In less than 10 words, why do you recommend it?", 1000, false)).then(
-                        () => getInput(
-                          "Tell me", false)).then((res) => {
-                        data["reason_for_recommending"] = res.value
-                        console.log(data)
-                      }).then(() => {
+                      sendMessage("Awesome!", 1000, true).then(() => whyRecommend()).then(() => {
                         sendMessage(
                           "Do you prefer learning from text or videos?",
                           4000, true).then(
@@ -227,6 +250,7 @@
                           sendMessage("interesting. cool cool", 2000,
                             true)
                           postContactToGoogle(data)
+                          
                         })
                       })
                     } else {
@@ -250,7 +274,7 @@
                                   data["adding_new_course"] = true
                                   data["ml_courses_liked"] = res.value
                                 })
-                              })
+                              }).then(() => whyRecommend())
                             } else
                               sendMessage("what are you good for", 3000, true).then(() => {
                                 sendMessage(
