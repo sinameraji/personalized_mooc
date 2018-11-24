@@ -16,10 +16,11 @@
         console.log(data)
         var form_url =
           "https://docs.google.com/forms/d/e/1FAIpQLSfVMwjOTW2g7HLOYZnpB0pFhENpcHBMUnzM-JoZ3i2hI1Wc6Q/formResponse?"
-        form_url += 'entry.160311008=' + JSON.stringify(data.url) + "&"
-        form_url += 'entry.800234758=' + JSON.stringify(data.type) + "&"
-        form_url += 'entry.1732245064=' + JSON.stringify(data.user_email) + "&"
-        form_url += 'entry.1762462755=' + JSON.stringify(data.reason)
+          form_url += 'entry.800234758=' + data.type + "&"
+          form_url += 'entry.1732245064=' + data.user_email + "&"
+          form_url += 'entry.1762462755=' + data.reason + "&"
+          form_url += 'entry.160311008=' + data.url 
+        console.log(form_url)
         $.ajax({
           url: form_url,
           type: "POST",
@@ -87,7 +88,7 @@
       if (dev) {
         username = 'dev_mode'
         languages = ['dev_mode']
-        data["email"] = 'dev'
+        data["email"] = 'dev@dev.com'
         data["name"] = 'dev'
       } else {
         firebase.auth().signInWithPopup(provider).then(function (result) {
