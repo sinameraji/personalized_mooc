@@ -11,44 +11,46 @@
   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
 
   <script>
-    function postContactToGoogle(data) {
-      var form_url =
-        'https://docs.google.com/forms/d/e/1FAIpQLSewnyqIDBQ2_t-YaFPzTpdCg-8jLneHmv6BitSggyK1q97OMA/formResponse?';
-      form_url += 'entry.1725402981=' + JSON.stringify(data);
-      $.ajax({
-        url: form_url,
-        type: "POST",
-        dataType: "xml",
-        statusCode: {
-          0: function () {
-            console.log("DONE" + JSON.stringify(data));
-          },
-          200: function () {
-            console.log("DONE" + JSON.stringify(data));
-          }
-        }
-      });
-    }
-
     function postContactToGoogle(data, newCourse) {
-      var form_url =
-        "https://docs.google.com/forms/d/e/1FAIpQLSfVMwjOTW2g7HLOYZnpB0pFhENpcHBMUnzM-JoZ3i2hI1Wc6Q/formResponse?"
-      form_url += 'entry.160311008=' + JSON.stringify(data.url) + "&"
-      form_url += 'entry.800234758=' + JSON.stringify(data.type) + "&"
-      form_url += 'entry.1732245064=' + JSON.stringify(data.email) 
-      $.ajax({
-        url: form_url,
-        type: "POST",
-        dataType: "xml",
-        statusCode: {
-          0: function () {
-            console.log("new course written to sheets" + JSON.stringify(data));
-          },
-          200: function () {
-            console.log("new course written to sheets" + JSON.stringify(data));
+      if (newCourse) {
+        console.log(data)
+        var form_url =
+          "https://docs.google.com/forms/d/e/1FAIpQLSfVMwjOTW2g7HLOYZnpB0pFhENpcHBMUnzM-JoZ3i2hI1Wc6Q/formResponse?"
+        form_url += 'entry.160311008=' + JSON.stringify(data.url) + "&"
+        form_url += 'entry.800234758=' + JSON.stringify(data.type) + "&"
+        form_url += 'entry.1732245064=' + JSON.stringify(data.user_email) + "&"
+        form_url += 'entry.1762462755=' + JSON.stringify(data.reason)
+        $.ajax({
+          url: form_url,
+          type: "POST",
+          dataType: "xml",
+          statusCode: {
+            0: function () {
+              console.log("new course written to sheets" + JSON.stringify(data));
+            },
+            200: function () {
+              console.log("new course written to sheets" + JSON.stringify(data));
+            }
           }
-        }
-      });
+        });
+      } else {
+        var form_url =
+          'https://docs.google.com/forms/d/e/1FAIpQLSewnyqIDBQ2_t-YaFPzTpdCg-8jLneHmv6BitSggyK1q97OMA/formResponse?';
+        form_url += 'entry.1725402981=' + JSON.stringify(data);
+        $.ajax({
+          url: form_url,
+          type: "POST",
+          dataType: "xml",
+          statusCode: {
+            0: function () {
+              console.log("DONE" + JSON.stringify(data));
+            },
+            200: function () {
+              console.log("DONE" + JSON.stringify(data));
+            }
+          }
+        });
+      }
     }
   </script>
   <script>
@@ -120,15 +122,18 @@
     }
     var botui = new BotUI('hello-world');
     var data = {}
+    var new_course = {
+      url: "",
+      type: "",
+      user_email: "",
+      reason: ""
+    }
     let name = ""
     let whyRecommend = () => {
       return sendMessage(
         "In less than 10 words, why do you recommend it?", 1000, false).then(
         () => getInput(
-          "Tell me", false)).then((res) => {
-        data["reason_for_recommending"] = res.value
-        console.log(data)
-      })
+          "Tell me", false, ""))
     }
     let sendMessage = (c, d, l) => {
       return botui.message.add({
@@ -184,8 +189,8 @@
       })
     }
 
-    let getInput = (text, email) => {
-      if (!email) {
+    let getInput = (text, gotType, type) => {
+      if (!gotType) {
         return botui.action.text({
           action: {
             placeholder: text
@@ -194,7 +199,7 @@
       } else {
         return botui.action.text({
           action: {
-            sub_type: 'email',
+            sub_type: type,
             placeholder: text
           }
         })
@@ -202,7 +207,7 @@
     }
 
     sendMessage("hi. what's your name?", 2000, true).then(() => {
-      getInput("write your name here", false).then((res) => {
+      getInput("write your name here", false,"").then((res) => {
         name = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
@@ -234,7 +239,10 @@
                     if (res.value !== "none") {
                       data["ml_courses_liked"] = res.value
                       data["adding_new_course"] = false
-                      sendMessage("Awesome!", 1000, true).then(() => whyRecommend()).then(() => {
+                      sendMessage("Awesome!", 1000, true).then(() => whyRecommend().then((res) => {
+                        data["reason_for_recommending"] = res.value
+                        //console.log(data)
+                      })).then(() => {
                         sendMessage(
                           "Do you prefer learning from text or videos?",
                           4000, true).then(
@@ -249,8 +257,8 @@
                           data["languages"] = languages.filter(onlyUnique)
                           sendMessage("interesting. cool cool", 2000,
                             true)
-                          postContactToGoogle(data)
-                          
+                          postContactToGoogle(data, false)
+
                         })
                       })
                     } else {
@@ -270,11 +278,38 @@
                                 "Tell me the URL of the course and I'll review and add it to the list :)",
                                 1000,
                                 true).then(() => {
-                                getInput("Course URL", false).then((res) => {
+                                getInput("Course URL", true,"url").then((res) => {
                                   data["adding_new_course"] = true
                                   data["ml_courses_liked"] = res.value
-                                })
-                              }).then(() => whyRecommend())
+                                  new_course.url = res.value
+
+                                }).then(() => sendMessage(
+                                  "What type of content is it?", 1000, false)).then(
+                                  () => {
+                                    buttons([{
+                                      text: 'Text',
+                                      value: 'text'
+                                    }, {
+                                      text: 'Video',
+                                      value: 'video'
+                                    }, {
+                                      text: 'Audio',
+                                      value: 'audio'
+                                    }]).then((res) => {
+                                      new_course.type = res.value
+                                    }).then(() => {
+                                      whyRecommend().then((res) => {
+                                        new_course.reason = res.value
+                                        new_course.user_email = data[
+                                          "email"]
+                                        postContactToGoogle(new_course,
+                                          true)
+                                      })
+
+
+                                    })
+                                  })
+                              })
                             } else
                               sendMessage("what are you good for", 3000, true).then(() => {
                                 sendMessage(
@@ -289,10 +324,10 @@
                   sendMessage("Sorry! For now, you need a Github account to continue :'(", 1000,
                     false).then(() => sendMessage(
                     "You can give me your email to receive updates from me.", 2000, true)).then(() => {
-                    getInput("email", true).then((res) => {
+                    getInput("email", true,"email").then((res) => {
                       data["email"] = res.value
                       data["receive_updates"] = true
-                      postContactToGoogle(data)
+                      postContactToGoogle(data, false)
                     })
                   })
                 }
