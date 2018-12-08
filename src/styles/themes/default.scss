@@ -7,12 +7,15 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans');
 
 $font-family: 'Open Sans', sans-serif;
-$primary-color: #919292;
+$primary-color: #000;
+
+
 
 .botui-container {
   font-size: 14px;
   background-color: #fff;
   font-family: $font-family;
+  
 }
 
 .botui-messages-container {
@@ -30,12 +33,12 @@ $primary-color: #919292;
 .botui-message-content {
   padding: 7px 13px;
   border-radius: 15px;
-  color: darken($primary-color, 22%);
-  background-color: lighten($primary-color, 35%);
+  color: lighten($primary-color, 100%);
+  background-color: lighten($primary-color, 0%);
 
   &.human { // if human = true
-    color: lighten($primary-color, 40%);
-    background-color: $primary-color;
+    color: $primary-color;
+    background-color: #ff7878;
   }
 
   &.text {
@@ -80,7 +83,7 @@ $primary-color: #919292;
 
 .botui-actions-buttons-button {
   border: 0;
-  color: #fff;
+  color: $primary-color;
   line-height: 1;
   cursor: pointer;
   font-size: 14px;
@@ -88,7 +91,7 @@ $primary-color: #919292;
   padding: 7px 15px;
   border-radius: 4px;
   font-family: $font-family;
-  background: darken($primary-color, 10%);
+  background: #ffba4a;
   box-shadow: 2px 3px 4px 0 rgba(0,0,0,.25);
 }
 
