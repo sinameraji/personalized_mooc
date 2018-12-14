@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>Contributor's home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
   <link rel="stylesheet" href="build/botui.min.css">
   <link rel="stylesheet" href="build/botui-theme-default.css">
@@ -13,15 +13,33 @@
   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
 
   <script>
+      function postToEc2(data) {
+        // let url = "http://52.206.115.195:80/recommend/"  + name
+        let url = "http://52.206.115.195:80/normalize/sina"
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                console.log("successfully sent engagment vector to ec2")
+            },
+            failure: function (errMsg) {
+                console.log("failed to send data to ec2.")
+            }
+        });
+    }
+
     function postContactToGoogle(data, newCourse) {
       if (newCourse) {
         //console.log(data)
         var form_url =
           "https://docs.google.com/forms/d/e/1FAIpQLSfVMwjOTW2g7HLOYZnpB0pFhENpcHBMUnzM-JoZ3i2hI1Wc6Q/formResponse?"
-          form_url += 'entry.800234758=' + data.type + "&"
-          form_url += 'entry.1732245064=' + data.user_email + "&"
-          form_url += 'entry.1762462755=' + data.reason + "&"
-          form_url += 'entry.160311008=' + JSON.stringify(data.url)
+        form_url += 'entry.800234758=' + data.type + "&"
+        form_url += 'entry.1732245064=' + data.user_email + "&"
+        form_url += 'entry.1762462755=' + data.reason + "&"
+        form_url += 'entry.160311008=' + JSON.stringify(data.url)
         //console.log(form_url)
         $.ajax({
           url: form_url,
@@ -152,32 +170,17 @@
     }
     let dropDown = (placeHolder, val, searchselect, label, options, btn) => {
       let courses = [{
-        value: "coursera_ng",
-        text: "Coursera ML Andrew Ng"
+        value: "10025OMLCM",
+        text: "a 15min read on Medium.com"
       }, {
-        value: "udacity",
-        text: "Udacity Deep Learning"
+        value: "10001MLSU",
+        text: "a 14-week lecture series on Coursera"
       }, {
-        value: "tf",
-        text: "Tensorflow official tutorial"
+        value: "10021MLCCG",
+        text: "a developer friendly crash course"
       }, {
-        value: "goog",
-        text: "Goolge ML Crash Course"
-      }, {
-        value: "fastai",
-        text: "Fast.ai"
-      }, {
-        value: "kaggle",
-        text: "ML course on Kaggle"
-      }, {
-        value: "mastery",
-        text: "Machine Learning Mastery blog"
-      }, {
-        value: "coursera_dc",
-        text: "ML Specialization, University of Washington, Coursera"
-      }, {
-        value: "none",
-        text: "None of these"
+        value: "10003NNfMLUoTy",
+        text: "a youtube playlist"
       }]
 
       return botui.action.select({
@@ -210,7 +213,7 @@
     }
 
     sendMessage("hi. what's your name?", 2000, true).then(() => {
-      getInput("write your name here", false,"").then((res) => {
+      getInput("write your name here", false, "").then((res) => {
         name = res.value
         sendMessage(`Hi ${res.value} :)`, 1000, true)
       }).then(() => sendMessage("I'm a virtual mentor in the making. Thanks for being my reverse mentor :p", 2000,
@@ -230,7 +233,7 @@
                 if (res.value === 'github') {
                   login(false)
                   sendMessage(
-                    "Tell me..what's an ML course that you've taken that you'd really really really recommend to someone like yourself? (someone with same level of knowledge and experience as you)",
+                    "There are many different types of learning resources online. What type of tutorial do you generally prefer?",
                     1000,
                     false).then(() => dropDown("Pick one or select 'None of these'", "NG", true,
                     'text',
@@ -238,32 +241,26 @@
                       icon: 'check',
                       label: 'OK'
                     }).then(function (res) {
-                    //console.log(res.value)
+                      let payload = {"timeSpent": 15, "pageLength": 30000, "scrolledHalf": 1, "scrolledBottom": 1, "engagement_rate": -1, "courseID": res.value}
+                      postToEc2(payload)
                     if (res.value !== "none") {
                       data["ml_courses_liked"] = res.value
                       data["adding_new_course"] = false
-                      sendMessage("Awesome!", 1000, true).then(() => whyRecommend().then((res) => {
-                        data["reason_for_recommending"] = res.value
-                        //console.log(data)
-                      })).then(() => {
+                      sendMessage("Awesome!", 1000, true).then(() => {
+
+
+
                         sendMessage(
-                          "Do you prefer learning from text or videos?",
-                          4000, true).then(
-                          () => buttons([{
-                            text: "Text",
-                            value: "text"
-                          }, {
-                            text: "Videos",
-                            value: "video"
-                          }])).then((res) => {
+                          "Give me a few seconds to think what's a good tutorial for you..",
+                          5000, true).then((res) => {
                           data["style"] = res.value
                           data["languages"] = languages.filter(onlyUnique)
-                          sendMessage("interesting. cool cool", 2000,
-                            true)
-                          postContactToGoogle(data, false)
-
                         })
+                        
+                        //postContactToGoogle(data, false)
                       })
+
+
                     } else {
                       sendMessage(
                           "No problem! do you have a favorite course that you wanna add to the list?",
@@ -281,7 +278,7 @@
                                 "Tell me the URL of the course and I'll review and add it to the list :)",
                                 1000,
                                 true).then(() => {
-                                getInput("Course URL", true,"url").then((res) => {
+                                getInput("Course URL", true, "url").then((res) => {
                                   data["adding_new_course"] = true
                                   data["ml_courses_liked"] = res.value
                                   new_course.url = res.value
@@ -327,7 +324,7 @@
                   sendMessage("Sorry! For now, you need a Github account to continue :'(", 1000,
                     false).then(() => sendMessage(
                     "You can give me your email to receive updates from me.", 2000, true)).then(() => {
-                    getInput("email", true,"email").then((res) => {
+                    getInput("email", true, "email").then((res) => {
                       data["email"] = res.value
                       data["receive_updates"] = true
                       postContactToGoogle(data, false)
